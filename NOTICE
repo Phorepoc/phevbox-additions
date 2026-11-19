@@ -31,3 +31,8 @@ The icon (os/src/phevboxsvc/phevbox_icon.svg) is original artwork, GPL-3.0-only.
 
 VirtualBox and Oracle are trademarks of Oracle and/or its affiliates; they are used here only to name the software this
 package works with. This package is not affiliated with or endorsed by Oracle.
+
+Drag and drop (os/src/phevboxsvc/vbox_dnd.cpp), checked 2026-11-19: written to include/VBox/HostServices/DragAndDropSvc.h (message and
+function numbers, parameter layouts) and include/VBox/GuestHost/DragAndDropDefs.h (the action bits), "SPDX-License-Identifier:
+GPL-3.0-only OR CDDL-1.0", Copyright (C) Oracle and/or its affiliates (taken under the GPL version 3 only), and to the order of
+calls in src/VBox/Additions/common/VBoxGuest/lib/VBoxGuestR3LibDragAndDrop.cpp (same licence), which was read, not copied.
