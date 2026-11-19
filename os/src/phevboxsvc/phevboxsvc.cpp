@@ -36,6 +36,7 @@ const TUint32 KMsgQuit = 1, KMsgReadData = 2, KMsgFormatsReport = 3, KMsgCancell
 const TUint32 KFmtUnicodeText = 1;
 
 const TInt KTickMs = 25;
+const TInt KRetryMs = 10000;			// between connect attempts while the host refuses
 const TInt KClipPollTicks = 40;			// 1 s
 
 #ifdef PHEVBOX_SELFTEST
@@ -110,10 +111,24 @@ public:
 		{
 		iHgcm = CVbHgcm::NewL();
 		User::LeaveIfError(iFs.Connect());
+		TryConnectL();
+		}
+	// connect to the clipboard service; if the host refuses (clipboard mode off, the host cannot open its clipboard, no service) try again
+	// every 10 s: the mode can be switched on while the device runs
+	void TryConnectL()
+		{
+		iClient = 0;
 		TInt r = iHgcm->Connect(KClipService, iClient);
 		Log("shared clipboard connect", r, (TInt)iClient);
-		User::LeaveIfError(r);
+		if (r != KErrNone)
+			{
+			iClient = 0;
+			After(KRetryMs * 1000);
+			return;
+			}
+		delete iLast;
 		iLast = ReadClipTextL(iFs);						// what is there now is not news
+		iWaiting = EFalse;
 		After(KTickMs * 1000);
 		}
 private:
@@ -155,6 +170,13 @@ void CClipService::RunL()
 	{
 	if (iStatus.Int() != KErrNone)
 		return;											// cancelled
+	if (!iClient)
+		{
+		TRAPD(cr, TryConnectL());
+		if (cr != KErrNone)
+			After(KRetryMs * 1000);
+		return;
+		}
 	if (iWaiting && iHgcm->Done(0))
 		{
 		iWaiting = EFalse;
