@@ -116,6 +116,8 @@ public:
 		TRAPD(dr, iDnd = CDndService::NewL(iHgcm, iFs));
 		Log("drag and drop service", dr);
 		TryConnectL();
+		iRetryTicks = iClient ? 0 : KRetryMs / KTickMs;
+		After(KTickMs * 1000);
 		}
 	// connect to the clipboard service; if the host refuses (clipboard mode off, the host cannot open its clipboard, no service) try again
 	// every 10 s: the mode can be switched on while the device runs
@@ -127,14 +129,11 @@ public:
 		if (r != KErrNone)
 			{
 			iClient = 0;
-			iRetryTicks = KRetryMs / KTickMs;
-			After(KTickMs * 1000);
 			return;
 			}
 		delete iLast;
 		iLast = ReadClipTextL(iFs);						// what is there now is not news
 		iWaiting = EFalse;
-		After(KTickMs * 1000);
 		}
 private:
 	CClipService() : CTimer(EPriorityStandard) { CActiveScheduler::Add(this); }
@@ -186,12 +185,10 @@ void CClipService::RunL()
 		else
 			{
 			TRAPD(cr, TryConnectL());
-			if (cr != KErrNone)
-				{
+			if (cr != KErrNone || !iClient)
 				iRetryTicks = KRetryMs / KTickMs;
-				After(KTickMs * 1000);
-				}
 			}
+		After(KTickMs * 1000);								// waiting for the next try: the timer keeps ticking for drag and drop
 		return;
 		}
 	if (iWaiting && iHgcm->Done(0))
