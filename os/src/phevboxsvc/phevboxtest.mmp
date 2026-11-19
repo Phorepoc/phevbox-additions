@@ -1,0 +1,16 @@
+#include <platform_paths.hrh>
+// Copyright The Phorepoc Authors
+// SPDX-License-Identifier: GPL-3.0-only
+// phevboxtest -- phevboxsvc with a self-test (a text is put on the Symbian clipboard ten seconds in, to be reported to the host).
+// A boot-test component (SSM_TEST=phevboxtest), never part of the package.
+TARGET          phevboxtest.exe
+TARGETTYPE      exe
+UID             0x100039CE 0xE5A0F202
+CAPABILITY      CommDD
+VENDORID        0
+MACRO           PHEVBOX_SELFTEST
+
+OS_LAYER_SYSTEMINCLUDE
+SOURCEPATH      .
+SOURCE          phevboxsvc.cpp vbox_hgcm.cpp
+LIBRARY         euser.lib efsrv.lib bafl.lib etext.lib estor.lib

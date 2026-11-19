@@ -1,0 +1,1 @@
+Share the clipboard between the VirtualBox host and Phorepoc: the VirtualBox guest additions, free software.

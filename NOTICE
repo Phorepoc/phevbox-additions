@@ -1,0 +1,33 @@
+phevbox-additions: the VirtualBox guest additions for Phorepoc (service, HGCM transport, shared clipboard)
+Copyright The Phorepoc Authors (see AUTHORS)
+
+Phorepoc was founded by Kyriakos Bompotis.
+
+Our files are licensed under the GNU General Public License, version 3 only (LICENSE, LICENSES/GPL-3.0-only.txt). That is the
+licence of VirtualBox's guest-side code, whose protocols this package speaks. Our own code is new: it is written to the
+published interface of the VirtualBox host, and where it follows VirtualBox's guest code (the shared clipboard's request
+sequence, the layout of HGCM requests) it is a reimplementation for another operating system, not a copy.
+
+What of VirtualBox's source this package depends on (each file's own licence stated, checked 2026-11-19):
+  * include/VBox/VMMDev.h, include/VBox/VMMDevCoreTypes.h (the request header, the HGCM connect / call / disconnect
+    structures and parameter types, whose layouts os/src/phevboxsvc/vbox_hgcm.cpp reproduces): MIT,
+    "Copyright (C) 2006-2026 Oracle and/or its affiliates" (VirtualBox 7.1 and later; text in
+    LICENSES/MIT-Oracle-VirtualBox-headers.txt). The MIT licence is compatible with the GPL.
+  * include/VBox/HostServices/VBoxClipboardSvc.h, include/VBox/GuestHost/SharedClipboard.h (the shared clipboard service's
+    function numbers, message numbers and format bits, used in os/src/phevboxsvc/phevboxsvc.cpp):
+    "SPDX-License-Identifier: GPL-3.0-only OR CDDL-1.0", Copyright (C) Oracle and/or its affiliates. We take it under the GPL
+    version 3 only.
+  * src/VBox/Additions/common/VBoxGuest/lib/VBoxGuestR3LibClipboard.cpp (read to learn which parameters each clipboard call
+    carries): the same dual licence; not copied.
+  Later phases (shared folders, drag and drop) will read VBoxServiceShFl / vbsf and the HGCM headers of the same trees; any file
+  whose text is carried over states its licence here before it is.
+
+os/src/phevboxsvc/rvmmdevchannel.h is a copy of the interface header of the PC image's kernel channel (PheVmmDev) and keeps its
+own licence, "EPL-2.0 OR GPL-2.0-or-later" (LICENSES/EPL-2.0.txt, LICENSES/GPL-2.0.txt): we use it under GPL-2.0-or-later, which
+the GPL version 3 of the whole package allows. The kernel side of the channel is not in this package and carries no GPL code:
+it is part of the operating system image.
+
+The icon (os/src/phevboxsvc/phevbox_icon.svg) is original artwork, GPL-3.0-only.
+
+VirtualBox and Oracle are trademarks of Oracle and/or its affiliates; they are used here only to name the software this
+package works with. This package is not affiliated with or endorsed by Oracle.

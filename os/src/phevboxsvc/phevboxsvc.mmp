@@ -1,0 +1,14 @@
+#include <platform_paths.hrh>
+// Copyright The Phorepoc Authors
+// SPDX-License-Identifier: GPL-3.0-only
+// phevboxsvc -- the guest additions' service: HGCM over the PheVmmDev channel, and the shared clipboard on it. CommDD opens the channel.
+TARGET          phevboxsvc.exe
+TARGETTYPE      exe
+UID             0x100039CE 0xE5A0F201
+CAPABILITY      CommDD
+VENDORID        0
+
+OS_LAYER_SYSTEMINCLUDE
+SOURCEPATH      .
+SOURCE          phevboxsvc.cpp vbox_hgcm.cpp
+LIBRARY         euser.lib efsrv.lib bafl.lib etext.lib estor.lib

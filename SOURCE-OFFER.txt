@@ -1,0 +1,19 @@
+VirtualBox guest additions for Phorepoc -- licence notice and source offer
+
+This package contains phevboxsvc.exe, a service that talks to the VirtualBox host through the guest-additions device and
+shares the clipboard (text) between the host and the device. Everything in it is licensed under the GNU General Public
+License version 3 only (GPL-3.0). The icon is our own artwork under the same licence. The licence texts are installed with
+the package in \resource\phevbox\licences\.
+
+Corresponding source, available to anyone who has this package, for at least three years after the release you installed
+it from:
+
+  1. Our files (os/src/phevboxsvc, registry, recipes) and the scripts that build and package the service:
+       https://github.com/Phorepoc/phevbox-additions   (the release tag of this package)
+     with the toolchain images and build tools in https://github.com/Phorepoc/toolchain and https://github.com/Phorepoc/pdk.
+  2. The VirtualBox headers whose interface the service implements are published by Oracle with VirtualBox
+     (https://github.com/VirtualBox/virtualbox, include/VBox); no VirtualBox source file is part of this package.
+
+Written offer: if the links above are no longer available, send a request to the address given on the Phorepoc
+organisation page https://github.com/Phorepoc and we will send you the corresponding source on a medium of your choice
+for the cost of the medium.
