@@ -26,6 +26,7 @@
 #include <baclipb.h>
 #include <txtetext.h>
 #include "vbox_hgcm.h"
+#include "vbox_dnd.h"
 
 _LIT8(KClipService, "VBoxSharedClipboard");
 _LIT(KSingleton, "PheVboxSvcSingleton");
@@ -103,6 +104,7 @@ public:
 		Cancel();
 		if (iHgcm && iClient)
 			iHgcm->Disconnect(iClient);
+		delete iDnd;
 		delete iHgcm;
 		delete iLast;
 		iFs.Close();
@@ -111,6 +113,8 @@ public:
 		{
 		iHgcm = CVbHgcm::NewL();
 		User::LeaveIfError(iFs.Connect());
+		TRAPD(dr, iDnd = CDndService::NewL(iHgcm, iFs));
+		Log("drag and drop service", dr);
 		TryConnectL();
 		}
 	// connect to the clipboard service; if the host refuses (clipboard mode off, the host cannot open its clipboard, no service) try again
@@ -123,7 +127,8 @@ public:
 		if (r != KErrNone)
 			{
 			iClient = 0;
-			After(KRetryMs * 1000);
+			iRetryTicks = KRetryMs / KTickMs;
+			After(KTickMs * 1000);
 			return;
 			}
 		delete iLast;
@@ -146,6 +151,8 @@ private:
 	RFs iFs;
 	TBool iWaiting;
 	TInt iTicks;
+	TInt iRetryTicks;
+	CDndService* iDnd;
 	HBufC* iLast;										// the clipboard text as last seen / set / reported
 	TBool iDenied;
 #ifdef PHEVBOX_SELFTEST
@@ -170,11 +177,21 @@ void CClipService::RunL()
 	{
 	if (iStatus.Int() != KErrNone)
 		return;											// cancelled
+	if (iDnd)
+		iDnd->Tick();									// drag and drop has its own connection and its own retries
 	if (!iClient)
 		{
-		TRAPD(cr, TryConnectL());
-		if (cr != KErrNone)
-			After(KRetryMs * 1000);
+		if (iRetryTicks > 0)
+			--iRetryTicks;
+		else
+			{
+			TRAPD(cr, TryConnectL());
+			if (cr != KErrNone)
+				{
+				iRetryTicks = KRetryMs / KTickMs;
+				After(KTickMs * 1000);
+				}
+			}
 		return;
 		}
 	if (iWaiting && iHgcm->Done(0))

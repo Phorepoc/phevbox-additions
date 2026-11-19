@@ -1,0 +1,2 @@
+# Started at boot by the image (pheshellsel: \resource\phe\services\*.txt): the test build of the guest additions service, from the ROM.
+start=!:\sys\bin\phevboxtest.exe

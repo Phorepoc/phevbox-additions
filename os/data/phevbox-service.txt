@@ -1,0 +1,2 @@
+# Started at boot by the image (pheshellsel: \resource\phe\services\*.txt): the guest additions service.
+start=!:\sys\bin\phevboxsvc.exe

@@ -14,5 +14,7 @@ _SRC = os.path.join(_HERE, "..", "os", "src", "phevboxsvc")
 
 COMPONENTS = {
     "phevboxsvc": dict(mmp=os.path.join(_SRC, "phevboxsvc.mmp"), package_only=True, sis=True),
-    "phevboxtest": dict(mmp=os.path.join(_SRC, "phevboxtest.mmp"), test=True),
+    "phevboxtest": dict(mmp=os.path.join(_SRC, "phevboxtest.mmp"), test=True,
+                        # the test image starts it through the services list (core pheshellsel), as an installed package does: ROM_TAIL=phevboxtest
+                        rom_data=[r"resource\phe\services\phevbox.txt=" + os.path.join(_HERE, "..", "os", "data", "phevboxtest-service.txt")]),
 }

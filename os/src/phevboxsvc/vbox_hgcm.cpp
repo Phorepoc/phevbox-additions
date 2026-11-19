@@ -102,19 +102,19 @@ TInt CVbHgcm::Result(TInt aSlot) const
 	return (TInt)R32(Req(aSlot), KHdrResult);
 	}
 
-TInt CVbHgcm::Connect(const TDesC8& aService, TUint32& aClientId)
+TInt CVbHgcm::Connect(const TDesC8& aService, TUint32& aClientId, TInt aSlot)
 	{
-	volatile TUint8* req = Req(0);
+	volatile TUint8* req = Req(aSlot);
 	InitReq(req, KConnSize, EReqHgcmConnect);
 	W32(req, KConnLoc, KLocLocalHostExisting);
 	for (TInt i = 0; i < aService.Length() && i < 127; ++i)
 		req[KConnName + i] = aService[i];
-	TInt r = DoSubmit(0, KConnSize);
+	TInt r = DoSubmit(aSlot, KConnSize);
 	if (r == KErrNone)
-		r = Wait(0, 2000);
+		r = Wait(aSlot, 2000);
 	if (r != KErrNone)
 		return r;
-	const TInt res = Result(0);
+	const TInt res = Result(aSlot);
 	RDebug::Printf("[phevbox] hgcm connect: vmmdev rc %d, result %d, client %u", iLastRc, res, R32(req, KConnClient));
 	if (res < 0)
 		return KErrNotFound;
@@ -122,14 +122,14 @@ TInt CVbHgcm::Connect(const TDesC8& aService, TUint32& aClientId)
 	return KErrNone;
 	}
 
-TInt CVbHgcm::Disconnect(TUint32 aClientId)
+TInt CVbHgcm::Disconnect(TUint32 aClientId, TInt aSlot)
 	{
-	volatile TUint8* req = Req(0);
+	volatile TUint8* req = Req(aSlot);
 	InitReq(req, 36, EReqHgcmDisconnect);
 	W32(req, 32, aClientId);
-	TInt r = DoSubmit(0, 36);
+	TInt r = DoSubmit(aSlot, 36);
 	if (r == KErrNone)
-		r = Wait(0, 2000);
+		r = Wait(aSlot, 2000);
 	return r;
 	}
 
@@ -170,6 +170,13 @@ void CVbHgcm::ParmBuf(TInt aSlot, TInt aIndex, TInt aDataOff, TInt aLength, TUin
 	{
 	volatile TUint8* req = Req(aSlot);
 	const TInt p = KCallFirst + aIndex * KParmSize;
+	if (aLength <= 0)
+		{
+		W32(req, p, KPageList);								// an empty buffer: size 0, no page list
+		W32(req, p + 4, 0);
+		W32(req, p + 8, 0);
+		return;
+		}
 	const TInt parms = (TInt)R32(req, KCallParms);
 	const TInt infoOff = KCallFirst + parms * KParmSize;		// the page list follows the parameters
 	const TUint32 pos = (TUint32)(KHgcmDataOff + aDataOff);		// within the arena
@@ -193,4 +200,10 @@ void CVbHgcm::ParmBuf(TInt aSlot, TInt aIndex, TInt aDataOff, TInt aLength, TUin
 TInt CVbHgcm::Submit(TInt aSlot)
 	{
 	return DoSubmit(aSlot, iSize[aSlot]);
+	}
+
+TUint64 CVbHgcm::ParmValue64(TInt aSlot, TInt aIndex) const
+	{
+	const TInt p = KCallFirst + aIndex * KParmSize + 4;
+	return MAKE_TINT64(R32(Req(aSlot), p + 4), R32(Req(aSlot), p));
 	}

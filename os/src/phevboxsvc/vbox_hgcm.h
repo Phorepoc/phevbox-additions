@@ -25,10 +25,10 @@ const TInt KVbInfoBufferOverflow = 2;		// VINF_BUFFER_OVERFLOW: data call, the b
 // HGCM buffer directions (HGCMPageListInfo::flags)
 const TUint32 KHgcmToHost = 1, KHgcmFromHost = 2;
 
-// Request slots (4 KB each, at the start of the arena); the data area follows them
-const TInt KHgcmSlots = 2;
+// Request slots (4 KB each, at the start of the arena): 0 connect + the clipboard's parked call, 1 its commands, 2 drag and drop's parked call, 3 its commands; the data area follows
+const TInt KHgcmSlots = 4;
 const TInt KHgcmSlotBytes = 0x1000;
-const TInt KHgcmDataOff = 0x2000;
+const TInt KHgcmDataOff = 0x4000;
 
 class CVbHgcm : public CBase
 	{
@@ -39,8 +39,8 @@ public:
 	TUint8* Data() const { return iBase + KHgcmDataOff; }
 
 	// connect to a host service by name ("VBoxSharedClipboard"); waits for the host (a connect is quick)
-	TInt Connect(const TDesC8& aService, TUint32& aClientId);
-	TInt Disconnect(TUint32 aClientId);
+	TInt Connect(const TDesC8& aService, TUint32& aClientId, TInt aSlot = 0);
+	TInt Disconnect(TUint32 aClientId, TInt aSlot = 0);
 
 	// a call: Begin, the Parm* calls, Submit; then Done()/Result() (poll), or Wait() for a call that completes soon
 	void Begin(TInt aSlot, TUint32 aClient, TUint32 aFunction, TInt aParms);
@@ -49,6 +49,7 @@ public:
 	// a buffer in the data area ([aDataOff, aDataOff + aLength)), as a page list; aDirection = KHgcmToHost / KHgcmFromHost
 	void ParmBuf(TInt aSlot, TInt aIndex, TInt aDataOff, TInt aLength, TUint32 aDirection);
 	TUint32 ParmValue32(TInt aSlot, TInt aIndex) const;
+	TUint64 ParmValue64(TInt aSlot, TInt aIndex) const;
 	TInt Submit(TInt aSlot);					// KErrNone when the device took it (the host's VMMDev status is in iLastRc)
 	TBool Done(TInt aSlot) const;				// the host has completed it
 	TInt Result(TInt aSlot) const;				// the VBox status code of a completed call
