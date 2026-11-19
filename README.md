@@ -59,3 +59,10 @@ operations by name: map, create, open, read, write, list, remove) as a drive; th
 the plug-in and the service share. Phase 3: the drag-and-drop service delivers dropped files (URI list) into
 `\Received` on the shared transport. Autostart: a generic "start these at boot" list for installed packages is the missing
 piece in the image; until then the menu entry starts the service.
+
+## Status (2026-11-19)
+
+Built by CI (v0.1.0). Checked on VirtualBox 7.2.18 with the PC image's channel: the service opens `PheVmmDev`, submits an HGCM
+connect and the host completes it (the host's clipboard service then refuses the connect when the host cannot open its own
+clipboard or its mode is off: the service retries every 10 s). Not yet exercised: the clipboard data paths (host text to the
+Symbian clipboard and back) and the install of the SIS on a running image; both need an interactive desktop session on the host.
