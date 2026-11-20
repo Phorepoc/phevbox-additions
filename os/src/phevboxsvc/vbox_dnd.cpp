@@ -44,6 +44,7 @@ const TInt KOffName = 0, KNameMax = 2048;
 const TInt KOffFmt = 2048, KFmtMax = 2048;
 const TInt KOffSum = 4096, KSumMax = 256;
 const TInt KOffData = 8192;
+const TInt KChunk = 65536;						// DND_DEFAULT_CHUNK_SIZE
 
 static void Log(const char* aMsg, TInt a = 0, TInt b = 0)
 	{
@@ -427,7 +428,13 @@ void CDndService::ReceiveDrop()
 	Log("data header: total bytes, meta bytes", (TInt)total, (TInt)meta);
 	Log("objects", (TInt)objects);
 	// the meta data (the URI list: not needed, the objects carry their names)
-	const TInt chunk = Min(32768, iHgcm->DataBytes() - KOffData);
+	const TInt chunk = KChunk;									// the protocol's default chunk size: the host sends up to this much per call, and a smaller buffer is an overflow (VERR_BUFFER_OVERFLOW, the drop is aborted)
+	if (iHgcm->DataBytes() - KOffData < KChunk)
+		{
+		Progress(KProgressError, KErrNoMemory);
+		Notice(0, KErrNoMemory);
+		return;
+		}
 	TUint32 gotMeta = 0;
 	while (gotMeta < meta && r == KErrNone)
 		{
