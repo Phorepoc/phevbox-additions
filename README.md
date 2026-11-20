@@ -69,3 +69,13 @@ The written source offer is `SOURCE-OFFER.txt`; the package installs it with the
 
 Shared folders as a drive (phase 2) when it is wanted: an F32 file-system plug-in over `VBoxSharedFolders`. Guest to host drag and
 drop. HGCM completion by the device's interrupt instead of polling. Further clipboard formats.
+
+## Status (2026-11-20)
+
+Released as v0.2.1 (CI). Checked on VirtualBox 7.2.18 with a test image (the PC image with the channel and the services list, the
+service in its ROM): the image starts the service from the services list at boot; drag and drop connects (protocol 3) and a drop of a
+file, and of a file with a folder, through the VirtualBox COM API (`tests/vbox_drop.ps1`: enter, move, drop, send data; the guest
+answers copy and asks for the URI list) arrives: "2 file(s) received from the host: C:\Data\Received" is shown on the device.
+Not yet exercised: a drag with the mouse (the COM calls are what the VM window makes), the clipboard data paths (the host's clipboard
+service refuses the connect while the host cannot open the Windows clipboard, which the build session cannot), and the install of the SIS
+on a running image.
