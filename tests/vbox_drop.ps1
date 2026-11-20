@@ -13,7 +13,14 @@ $m = $vb.FindMachine($Vm)
 $m.LockMachine($s, 1)
 try {
     $g = $s.Console.Guest.DnDTarget
-    $uris = ($Paths | ForEach-Object { "file:///" + ((Resolve-Path $_).Path -replace '\\', '/') }) -join "`r`n"
+    # a path that exists is resolved; anything else (a path that is not there, a UNC name, a file: URI) is sent as given, to see what the host does
+    $uris = ($Paths | ForEach-Object {
+        $p = $_
+        if ($p -like "file:*") { $p } else {
+            $r = Resolve-Path $p -ErrorAction SilentlyContinue
+            if ($r) { $p = $r.Path }
+            "file:///" + (($p -replace '^[\\/]+', '') -replace '\\', '/')
+        } }) -join "`r`n"
     $uris += "`r`n"
     $copy = 1                                   # DnDAction_Copy
     $formats = [string[]]@("text/uri-list")

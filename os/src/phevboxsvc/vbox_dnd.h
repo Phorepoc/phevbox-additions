@@ -40,6 +40,7 @@ private:
 	TUint32 iClient;
 	TBool iWaiting;
 	TBool iAccept;					// the host offers a URI list (files)
+	TBool iAsked;					// we asked for the data and the host has not started it
 	TInt iRetryTicks;
 	RFile iFile;
 	TBool iFileOpen;

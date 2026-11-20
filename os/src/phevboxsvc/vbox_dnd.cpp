@@ -37,6 +37,7 @@ enum { EHgEnter = 200, EHgMove = 201, EHgLeave = 202, EHgDropped = 203, EHgCance
 const TUint32 KActionCopy = 1;
 const TUint32 KProgressComplete = 2, KProgressError = 4;
 const TInt KRetryTicks = 400;					// 10 s
+const TInt KVbErrCancelled = -70;					// VERR_CANCELLED: the host ended the operation
 
 // data area layout (one call at a time)
 const TInt KOffName = 0, KNameMax = 2048;
@@ -136,6 +137,17 @@ void CDndService::Tick()
 		{
 		iWaiting = EFalse;
 		const TInt res = iHgcm->Result(2);
+		if (res == KVbErrCancelled)
+			{
+			// the host gave up the operation (it could not read the files, the user left the window): we stay connected and wait again
+			Log("host cancelled the operation", res, iAsked);
+			if (iAsked)
+				Notice(0, KErrCancel);
+			iAsked = EFalse;
+			iAccept = EFalse;
+			ArmWait();
+			return;
+			}
 		if (res < 0)
 			{
 			Log("host message call failed (service gone?)", res);
@@ -204,6 +216,7 @@ void CDndService::ReqData()
 	iHgcm->ParmU32(3, 2, n);
 	const TInt r = Sync(3);
 	Log("asked the host for the files", r);
+	iAsked = (r == KErrNone);
 	}
 
 void CDndService::Progress(TUint32 aStatus, TInt aRc)
@@ -366,6 +379,8 @@ void CDndService::Notice(TInt aFiles, TInt aErr)
 	TBuf<96> text;
 	if (aErr == KErrNone)
 		text.Format(_L("%d file(s) received from the host: C:\\Data\\Received"), aFiles);
+	else if (aErr == KErrCancel)
+		text = _L("The host could not send the file");
 	else
 		text.Format(_L("Drop from the host failed (%d)"), aErr);
 	CAknGlobalNote* note = NULL;
@@ -380,6 +395,7 @@ void CDndService::Notice(TInt aFiles, TInt aErr)
 
 void CDndService::ReceiveDrop()
 	{
+	iAsked = EFalse;
 	iRootFrom.ResetAndDestroy();
 	iRootTo.ResetAndDestroy();
 	iFs.MkDirAll(KReceived);
@@ -523,12 +539,16 @@ void CDndService::ReceiveDrop()
 		iFileOpen = EFalse;
 		iFs.Delete(path);							// the file that was cut short
 		}
+	if (r == KVbErrCancelled)
+		r = KErrCancel;								// the host ended it
 	Log("drop done: files, status", files, r);
 	if (r == KErrNone)
 		{
 		Progress(KProgressComplete, 0);
 		Notice(files, KErrNone);
 		}
+	else if (r == KErrCancel && !cancelled)
+		Notice(files, KErrCancel);
 	else if (!cancelled)
 		{
 		Progress(KProgressError, r);
